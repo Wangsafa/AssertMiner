@@ -1,0 +1,126 @@
+
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.i[8] |-> padder.buffer_full == 1'b1);
+
+
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.buffer_full |-> padder.out_ready == 1'b1);
+
+
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    (padder.state == 1'b0 && padder.in_ready && !padder.buffer_full) |-> padder.accept == 1'b1);
+
+
+assert property (@(posedge f_permutation.clk) disable iff (f_permutation.reset)
+    (f_permutation.in_ready && !f_permutation.calc) |-> f_permutation.ack == 1'b1);
+
+
+assert property (@(posedge f_permutation.clk) disable iff (f_permutation.reset)
+    f_permutation.accept |-> f_permutation.round_in == {f_permutation.in ^ f_permutation.out[1599:1024], f_permutation.out[1023:0]});
+
+
+assert property (@(posedge rconst2in1.clk) disable iff (rconst2in1.reset)
+    rconst2in1.i == 12'b000000000001 |-> rconst2in1.rc1[0] == 1'b1 && rconst2in1.rc2[0] == 1'b0);
+
+
+// Assertion A-2: Verify `buffer_full` is asserted when the buffer is full.
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.i[8] |-> padder.buffer_full);
+
+
+// Assertion A-3: Verify `out_ready` is high when `buffer_full` is high.
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.buffer_full |-> padder.out_ready);
+
+
+// Assertion A-6: Verify `accept` is high under specified conditions.
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    (padder.state == 1'b0 && padder.in_ready && ~padder.buffer_full) |-> padder.accept);
+
+
+// Assertion A-7: Verify `update` is high under specified conditions.
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    (padder.accept || (padder.state && ~padder.buffer_full && ~padder.done)) |-> padder.update);
+
+
+// Assertion A-10: Verify `ack` is high when `in_ready` is high and `calc` is low.
+assert property (@(posedge f_permutation.clk) disable iff (f_permutation.reset)
+    (f_permutation.in_ready && ~f_permutation.calc) |-> f_permutation.ack);
+
+
+// Assertion A-13: Verify `round_in` updates correctly based on `accept`.
+assert property (@(posedge f_permutation.clk) disable iff (f_permutation.reset)
+    f_permutation.accept |-> (f_permutation.round_in == {f_permutation.in ^ f_permutation.out[1599:1024], f_permutation.out[1023:0]}));
+
+
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.i[8] |-> padder.buffer_full == 1'b1
+);
+// Ensures `buffer_full` is asserted when the most significant bit of `i` is set.
+
+
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.buffer_full |-> padder.out_ready == 1'b1
+);
+// Ensures `out_ready` is high when `buffer_full` is high.
+
+
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    (padder.state == 1'b0 && padder.in_ready && !padder.buffer_full) |-> padder.accept == 1'b1
+);
+// Ensures `accept` is high only under the specified conditions.
+
+
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    (padder.accept || (padder.state && !padder.buffer_full && !padder.done)) |-> padder.update == 1'b1
+);
+// Ensures `update` is high when `accept` is high or when `state` is 1, `buffer_full` is low, and `done` is low.
+
+
+assert property (@(posedge f_permutation.clk) disable iff (f_permutation.reset)
+    (f_permutation.in_ready && !f_permutation.calc) |-> f_permutation.ack == 1'b1
+);
+// Ensures `ack` is high when `in_ready` is high and `calc` is low.
+
+
+assert property (@(posedge f_permutation.clk) disable iff (f_permutation.reset)
+    f_permutation.accept |-> f_permutation.round_in == {f_permutation.in ^ f_permutation.out[1599:1024], f_permutation.out[1023:0]}
+);
+// Ensures `round_in` is updated correctly when `accept` is high.
+
+
+
+
+/////////////////////////////////////////
+// Assertion A-1: Verify `out` updates correctly when `update` is high.
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.update |-> (padder.out == {padder.out[575-64:0], padder.v1}));
+
+// Assertion A-4: Verify `state` transitions to 1 when `is_last` is high.
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.is_last |-> (padder.state == 1'b1));
+
+
+// Assertion A-5: Verify `done` is high when `state` is 1 and `out_ready` is high.
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    (padder.state && padder.out_ready) |-> padder.done);
+
+// Assertion A-11: Verify `out_ready` is high only after the last round.
+assert property (@(posedge f_permutation.clk) disable iff (f_permutation.reset)
+    f_permutation.i[10] |-> f_permutation.out_ready);
+
+
+// Assertion A-12: Verify `calc` is high under specified conditions.
+assert property (@(posedge f_permutation.clk) disable iff (f_permutation.reset)
+    (f_permutation.accept || (f_permutation.calc && ~f_permutation.i[10])) |-> f_permutation.calc);
+
+
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.update |-> padder.out == {padder.out[575-64:0], padder.v1});
+
+// Verifies that the `out` signal shifts left by 64 bits and appends `v1` when `update` is high.
+
+assert property (@(posedge padder.clk) disable iff (padder.reset)
+    padder.is_last |-> padder.state == 1'b1
+);
+// Ensures `state` transitions to 1 when `is_last` is high.
