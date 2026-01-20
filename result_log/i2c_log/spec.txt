@@ -1,0 +1,98 @@
+### Step 1: Initial Review
+
+The provided top-level module (`i2c_master_top`) is the main controller for an I2C Master interface. It is compliant with the WISHBONE RevB.2 bus standard and provides an interface for communication with I2C slave devices. The module interacts with the WISHBONE bus for configuration and data transfer and controls the I2C bus lines (`SCL` and `SDA`) for communication with external I2C devices.
+
+Key features of the top-level module:
+- WISHBONE interface for configuration and data transfer.
+- I2C Master functionality, including start/stop signal generation, data read/write, and acknowledgment handling.
+- Support for clock prescaling and interrupt generation.
+- Integration of sub-modules for byte-level and bit-level I2C operations.
+
+The top-level module instantiates two sub-modules:
+1. `i2c_master_byte_ctrl`: Handles byte-level operations for the I2C protocol.
+2. `i2c_master_bit_ctrl`: Handles bit-level operations for the I2C protocol.
+
+---
+
+### Step 2: Extract Spec Descriptions for Sub-modules
+
+#### **1. Module: `i2c_master_bit_ctrl`**
+
+**Module Overview:**
+The `i2c_master_bit_ctrl` module is responsible for handling bit-level operations of the I2C protocol. It generates the necessary transitions on the I2C clock (`SCL`) and data (`SDA`) lines to implement start, stop, read, write, and acknowledgment signals. It also includes clock synchronization and arbitration logic for multi-master I2C systems.
+
+**Port Descriptions:**
+| **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+|---------------|---------------|-----------|---------------------------------------------------------------------------------|
+| `clk`         | Input         | 1         | System clock signal.                                                           |
+| `rst`         | Input         | 1         | Synchronous active-high reset signal.                                          |
+| `nReset`      | Input         | 1         | Asynchronous active-low reset signal.                                          |
+| `ena`         | Input         | 1         | Core enable signal.                                                            |
+| `clk_cnt`     | Input         | 16        | Clock prescale value for generating the I2C clock.                             |
+| `cmd`         | Input         | 4         | Command input from the byte controller (e.g., start, stop, read, write).       |
+| `cmd_ack`     | Output        | 1         | Acknowledge signal indicating command completion.                              |
+| `busy`        | Output        | 1         | Indicates whether the I2C bus is busy.                                         |
+| `al`          | Output        | 1         | Arbitration lost signal.                                                       |
+| `din`         | Input         | 1         | Data input for the I2C bus.                                                    |
+| `dout`        | Output        | 1         | Data output from the I2C bus.                                                  |
+| `scl_i`       | Input         | 1         | I2C clock line input.                                                          |
+| `scl_o`       | Output        | 1         | I2C clock line output (always driven low).                                     |
+| `scl_oen`     | Output        | 1         | I2C clock line output enable (active low).                                     |
+| `sda_i`       | Input         | 1         | I2C data line input.                                                           |
+| `sda_o`       | Output        | 1         | I2C data line output (always driven low).                                      |
+| `sda_oen`     | Output        | 1         | I2C data line output enable (active low).                                      |
+
+**Functional Description:**
+The `i2c_master_bit_ctrl` module translates high-level I2C commands (e.g., start, stop, read, write) into bit-level transitions on the `SCL` and `SDA` lines. It ensures proper timing and synchronization for the I2C protocol, including clock stretching and multi-master arbitration. The module generates the following signals:
+- Start and stop conditions.
+- Data bits for read and write operations.
+- Acknowledgment signals.
+- Arbitration lost detection and clock synchronization for multi-master systems.
+
+---
+
+#### **2. Module: `i2c_master_byte_ctrl`**
+
+**Module Overview:**
+The `i2c_master_byte_ctrl` module handles byte-level operations of the I2C protocol. It manages the transfer of data bytes between the WISHBONE interface and the I2C bus. The module interacts with the `i2c_master_bit_ctrl` module to perform bit-level operations.
+
+**Port Descriptions:**
+| **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+|---------------|---------------|-----------|---------------------------------------------------------------------------------|
+| `clk`         | Input         | 1         | System clock signal.                                                           |
+| `rst`         | Input         | 1         | Synchronous active-high reset signal.                                          |
+| `nReset`      | Input         | 1         | Asynchronous active-low reset signal.                                          |
+| `ena`         | Input         | 1         | Core enable signal.                                                            |
+| `clk_cnt`     | Input         | 16        | Clock prescale value for generating the I2C clock.                             |
+| `start`       | Input         | 1         | Start condition command.                                                       |
+| `stop`        | Input         | 1         | Stop condition command.                                                        |
+| `read`        | Input         | 1         | Read command.                                                                  |
+| `write`       | Input         | 1         | Write command.                                                                 |
+| `ack_in`      | Input         | 1         | Acknowledge input for read operations.                                         |
+| `din`         | Input         | 8         | Data byte to be transmitted.                                                   |
+| `cmd_ack`     | Output        | 1         | Acknowledge signal indicating command completion.                              |
+| `ack_out`     | Output        | 1         | Acknowledge output from the slave device.                                      |
+| `dout`        | Output        | 8         | Data byte received from the slave device.                                      |
+| `i2c_busy`    | Output        | 1         | Indicates whether the I2C bus is busy.                                         |
+| `i2c_al`      | Output        | 1         | Arbitration lost signal.                                                       |
+| `scl_i`       | Input         | 1         | I2C clock line input.                                                          |
+| `scl_o`       | Output        | 1         | I2C clock line output (always driven low).                                     |
+| `scl_oen`     | Output        | 1         | I2C clock line output enable (active low).                                     |
+| `sda_i`       | Input         | 1         | I2C data line input.                                                           |
+| `sda_o`       | Output        | 1         | I2C data line output (always driven low).                                      |
+| `sda_oen`     | Output        | 1         | I2C data line output enable (active low).                                      |
+
+**Functional Description:**
+The `i2c_master_byte_ctrl` module manages the transfer of data bytes over the I2C bus. It provides commands for start, stop, read, and write operations. The module interacts with the `i2c_master_bit_ctrl` module to perform bit-level operations. It also handles acknowledgment signals and generates status flags, such as `i2c_busy` and `i2c_al`. The module includes a shift register for serializing and deserializing data bytes.
+
+---
+
+### Step 3: Format the Spec Descriptions
+
+The Spec descriptions for the sub-modules have been formatted as per the structure and terminology used in the provided Spec description document. Each section includes the module name, port descriptions, and functional overview.
+
+---
+
+### Step 4: Deliver the Spec Descriptions
+
+The Spec descriptions for the sub-modules (`i2c_master_bit_ctrl` and `i2c_master_byte_ctrl`) have been provided in separate sections above. These descriptions include detailed information about the module's purpose, port functionality, and high-level operation. Let me know if further clarification or additional details are needed!
