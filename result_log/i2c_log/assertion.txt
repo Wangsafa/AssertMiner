@@ -1,0 +1,162 @@
+### Step 1: Understand the Logical Function and Signals
+
+The provided modules (`i2c_master_top`, `i2c_master_byte_ctrl`, and `i2c_master_bit_ctrl`) implement an I2C master controller. The `i2c_master_top` module is the top-level module that interfaces with the WISHBONE bus and controls the I2C bus. The `i2c_master_byte_ctrl` module handles byte-level operations, while the `i2c_master_bit_ctrl` module handles bit-level operations, including generating start/stop conditions, reading/writing data, and handling arbitration.
+
+Key signals:
+- **WISHBONE interface signals**: `wb_clk_i`, `wb_rst_i`, `wb_adr_i`, `wb_dat_i`, `wb_dat_o`, `wb_we_i`, `wb_stb_i`, `wb_cyc_i`, `wb_ack_o`, `wb_inta_o`.
+- **I2C interface signals**: `scl_pad_i`, `scl_pad_o`, `scl_padoen_o`, `sda_pad_i`, `sda_pad_o`, `sda_padoen_o`.
+- **Control and status signals**: `prer`, `ctr`, `txr`, `rxr`, `cr`, `sr`, `done`, `core_en`, `ien`, `irq_flag`, `al`, `tip`, `rxack`.
+
+---
+
+### Step 2: Review the Verification Items
+
+The verification items (VIs) describe specific conditions and functionalities that need to be verified. These include:
+1. Correct generation of clock enable signals (`clk_en`).
+2. Handling of start/stop conditions (`sta_condition`, `sto_condition`).
+3. Arbitration lost detection (`al`).
+4. State machine transitions for start, stop, read, and write commands.
+5. Behavior of shift registers and counters.
+6. Interaction between the WISHBONE interface and the I2C core.
+
+---
+
+### Step 3: Generate Assertions
+
+Below are the generated assertions for each verification item.
+
+---
+
+#### **Assertions for `i2c_master_bit_ctrl`**
+
+**A-1**  
+- **Verification Item**: VI-1 (Clock enable signal generation).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_bit_ctrl.clk) disable iff (!i2c_master_bit_ctrl.nReset)
+    (i2c_master_bit_ctrl.cnt == 16'h0 || !i2c_master_bit_ctrl.ena || i2c_master_bit_ctrl.scl_sync) |-> ##1
+    i2c_master_bit_ctrl.clk_en == 1'b1);
+```
+- **Description**: Verifies that `clk_en` is asserted when the counter reaches zero, `ena` is deasserted, or `scl_sync` is asserted.
+
+**A-2**  
+- **Verification Item**: VI-2 (Slave wait signal).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_bit_ctrl.clk) disable iff (!i2c_master_bit_ctrl.nReset)
+    (i2c_master_bit_ctrl.scl_oen && !i2c_master_bit_ctrl.dscl_oen && !i2c_master_bit_ctrl.sSCL) |-> ##1
+    i2c_master_bit_ctrl.slave_wait == 1'b1);
+```
+- **Description**: Verifies that `slave_wait` is asserted when the master attempts to drive `SCL` high, but the slave pulls it low.
+
+**A-3**  
+- **Verification Item**: VI-3 (Start/Stop condition detection).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_bit_ctrl.clk) disable iff (!i2c_master_bit_ctrl.nReset)
+    (!i2c_master_bit_ctrl.sSDA && i2c_master_bit_ctrl.dSDA && i2c_master_bit_ctrl.sSCL) |-> ##1
+    i2c_master_bit_ctrl.sta_condition == 1'b1);
+```
+```verilog
+assert property (@(posedge i2c_master_bit_ctrl.clk) disable iff (!i2c_master_bit_ctrl.nReset)
+    (i2c_master_bit_ctrl.sSDA && !i2c_master_bit_ctrl.dSDA && i2c_master_bit_ctrl.sSCL) |-> ##1
+    i2c_master_bit_ctrl.sto_condition == 1'b1);
+```
+- **Description**: Verifies that `sta_condition` is asserted on a falling edge of `SDA` while `SCL` is high, and `sto_condition` is asserted on a rising edge of `SDA` while `SCL` is high.
+
+**A-4**  
+- **Verification Item**: VI-4 (Bus busy signal).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_bit_ctrl.clk) disable iff (!i2c_master_bit_ctrl.nReset)
+    (i2c_master_bit_ctrl.sta_condition) |-> ##1 i2c_master_bit_ctrl.busy == 1'b1);
+```
+```verilog
+assert property (@(posedge i2c_master_bit_ctrl.clk) disable iff (!i2c_master_bit_ctrl.nReset)
+    (i2c_master_bit_ctrl.sto_condition) |-> ##1 i2c_master_bit_ctrl.busy == 1'b0);
+```
+- **Description**: Verifies that `busy` is asserted after a start condition and deasserted after a stop condition.
+
+**A-5**  
+- **Verification Item**: VI-5 (Arbitration lost signal).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_bit_ctrl.clk) disable iff (!i2c_master_bit_ctrl.nReset)
+    (i2c_master_bit_ctrl.sda_chk && !i2c_master_bit_ctrl.sSDA && i2c_master_bit_ctrl.sda_oen) |-> ##1
+    i2c_master_bit_ctrl.al == 1'b1);
+```
+- **Description**: Verifies that `al` is asserted when the master drives `SDA` high, but the bus is low.
+
+**A-6**  
+- **Verification Item**: VI-7 (Data output signal).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_bit_ctrl.clk) disable iff (!i2c_master_bit_ctrl.nReset)
+    (i2c_master_bit_ctrl.sSCL && !i2c_master_bit_ctrl.dSCL) |-> ##1
+    i2c_master_bit_ctrl.dout == i2c_master_bit_ctrl.sSDA);
+```
+- **Description**: Verifies that `dout` captures the value of `SDA` on the rising edge of `SCL`.
+
+---
+
+#### **Assertions for `i2c_master_byte_ctrl`**
+
+**A-7**  
+- **Verification Item**: VI-9 (Go signal generation).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_byte_ctrl.clk) disable iff (!i2c_master_byte_ctrl.nReset)
+    (i2c_master_byte_ctrl.read || i2c_master_byte_ctrl.write || i2c_master_byte_ctrl.stop) && !i2c_master_byte_ctrl.cmd_ack |-> ##1
+    i2c_master_byte_ctrl.go == 1'b1);
+```
+- **Description**: Verifies that the `go` signal is asserted when any of the `read`, `write`, or `stop` commands are issued, and `cmd_ack` is low.
+
+**A-8**  
+- **Verification Item**: VI-10 (Shift register load).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_byte_ctrl.clk) disable iff (!i2c_master_byte_ctrl.nReset)
+    (i2c_master_byte_ctrl.ld) |-> ##1
+    i2c_master_byte_ctrl.sr == i2c_master_byte_ctrl.din);
+```
+- **Description**: Verifies that the shift register (`sr`) is loaded with the value of `din` when `ld` is asserted.
+
+**A-9**  
+- **Verification Item**: VI-11 (Shift register shift).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_byte_ctrl.clk) disable iff (!i2c_master_byte_ctrl.nReset)
+    (i2c_master_byte_ctrl.shift) |-> ##1
+    i2c_master_byte_ctrl.sr == {i2c_master_byte_ctrl.sr[6:0], i2c_master_byte_ctrl.core_rxd});
+```
+- **Description**: Verifies that the shift register shifts left by one bit when `shift` is asserted.
+
+**A-10**  
+- **Verification Item**: VI-13 (Counter done signal).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_byte_ctrl.clk) disable iff (!i2c_master_byte_ctrl.nReset)
+    (i2c_master_byte_ctrl.dcnt == 3'h0) |-> ##1
+    i2c_master_byte_ctrl.cnt_done == 1'b1);
+```
+- **Description**: Verifies that `cnt_done` is asserted when the counter reaches zero.
+
+---
+
+#### **Assertions for `i2c_master_top`**
+
+**A-11**  
+- **Verification Item**: VI-16 (Interrupt request signal).  
+- **Assertion**:
+```verilog
+assert property (@(posedge i2c_master_top.wb_clk_i) disable iff (!i2c_master_top.rst_i)
+    (i2c_master_top.irq_flag && i2c_master_top.ien) |-> ##1
+    i2c_master_top.wb_inta_o == 1'b1);
+```
+- **Description**: Verifies that the interrupt request signal (`wb_inta_o`) is asserted when `irq_flag` and `ien` are both high.
+
+---
+
+### Step 4: Provide the Generated Assertions
+
+The assertions above are structured with unique identifiers, corresponding verification item IDs, assertion statements, and descriptions. These assertions cover functional requirements, signal behavior, edge cases, and error handling for the I2C master controller. Let me know if additional details or refinements are needed!

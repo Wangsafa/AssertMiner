@@ -1,0 +1,112 @@
+### Verification Items for Sub-Modules
+
+Below are the extracted verification items for the sub-modules `i2c_master_bit_ctrl` and `i2c_master_byte_ctrl` based on the provided Spec description and RTL code.
+
+---
+
+### **Sub-Module: `i2c_master_bit_ctrl`**
+
+#### **Verification Items**
+
+**VI-1**  
+- **Description**: Verify that the `clk_en` signal is generated correctly based on the `clk_cnt` value, `ena` signal, and `slave_wait` condition.  
+- **Related Signals**: `clk_en`, `clk_cnt`, `ena`, `slave_wait`.  
+- **Condition**: Ensure `clk_en` is asserted when `cnt` reaches zero or when `ena` is deasserted.  
+
+**VI-2**  
+- **Description**: Verify that the `slave_wait` signal is asserted when the slave pulls `SCL` low while the master attempts to drive it high.  
+- **Related Signals**: `slave_wait`, `scl_oen`, `dscl_oen`, `sSCL`.  
+- **Condition**: Check that `slave_wait` is asserted when `scl_oen` is high, `dscl_oen` is low, and `sSCL` is low.  
+
+**VI-3**  
+- **Description**: Verify the correct generation of the `sta_condition` and `sto_condition` signals for detecting START and STOP conditions.  
+- **Related Signals**: `sta_condition`, `sto_condition`, `sSCL`, `sSDA`, `dSDA`.  
+- **Condition**:  
+  - `sta_condition` should be asserted on a falling edge of `SDA` while `SCL` is high.  
+  - `sto_condition` should be asserted on a rising edge of `SDA` while `SCL` is high.  
+
+**VI-4**  
+- **Description**: Verify that the `busy` signal is asserted after a START condition and deasserted after a STOP condition.  
+- **Related Signals**: `busy`, `sta_condition`, `sto_condition`.  
+- **Condition**:  
+  - `busy` should be asserted when `sta_condition` is detected.  
+  - `busy` should be deasserted when `sto_condition` is detected.  
+
+**VI-5**  
+- **Description**: Verify that the `al` (arbitration lost) signal is asserted when the master drives `SDA` high, but the bus is low, or when a STOP condition is detected without being requested.  
+- **Related Signals**: `al`, `sda_chk`, `sSDA`, `sda_oen`, `sto_condition`, `cmd_stop`.  
+- **Condition**:  
+  - `al` should be asserted when `sda_chk` is high, `sSDA` is low, and `sda_oen` is high.  
+  - `al` should also be asserted when `sto_condition` is detected and `cmd_stop` is not set.  
+
+**VI-6**  
+- **Description**: Verify the correct operation of the state machine for START, STOP, READ, and WRITE commands.  
+- **Related Signals**: `c_state`, `cmd`, `scl_oen`, `sda_oen`, `cmd_ack`.  
+- **Condition**:  
+  - Ensure the state transitions follow the expected sequence for each command.  
+  - Verify that `cmd_ack` is asserted for one clock cycle at the end of each command.  
+
+**VI-7**  
+- **Description**: Verify that the `dout` signal correctly captures the value of `SDA` on the rising edge of `SCL`.  
+- **Related Signals**: `dout`, `sSCL`, `dSCL`, `sSDA`.  
+- **Condition**: `dout` should be updated with the value of `sSDA` when `sSCL` transitions from low to high.  
+
+**VI-8**  
+- **Description**: Verify that the `scl_o` and `sda_o` signals are always driven low.  
+- **Related Signals**: `scl_o`, `sda_o`.  
+- **Condition**: Ensure `scl_o` and `sda_o` are always `1'b0`.  
+
+---
+
+### **Sub-Module: `i2c_master_byte_ctrl`**
+
+#### **Verification Items**
+
+**VI-9**  
+- **Description**: Verify that the `go` signal is asserted when any of the `start`, `stop`, `read`, or `write` commands are issued, and `cmd_ack` is low.  
+- **Related Signals**: `go`, `start`, `stop`, `read`, `write`, `cmd_ack`.  
+- **Condition**: `go` should be high when any of the commands (`start`, `stop`, `read`, `write`) are asserted, and `cmd_ack` is low.  
+
+**VI-10**  
+- **Description**: Verify that the `sr` (shift register) is loaded with the value of `din` when the `ld` signal is asserted.  
+- **Related Signals**: `sr`, `din`, `ld`.  
+- **Condition**: Ensure `sr` is updated with `din` when `ld` is high.  
+
+**VI-11**  
+- **Description**: Verify that the `sr` (shift register) shifts left by one bit when the `shift` signal is asserted.  
+- **Related Signals**: `sr`, `shift`, `core_rxd`.  
+- **Condition**: Ensure `sr` shifts left and the MSB is filled with `core_rxd` when `shift` is high.  
+
+**VI-12**  
+- **Description**: Verify that the `dcnt` counter is loaded with `3'h7` when the `ld` signal is asserted and decrements by 1 when the `shift` signal is asserted.  
+- **Related Signals**: `dcnt`, `ld`, `shift`.  
+- **Condition**:  
+  - `dcnt` should be set to `3'h7` when `ld` is high.  
+  - `dcnt` should decrement by 1 when `shift` is high.  
+
+**VI-13**  
+- **Description**: Verify that the `cnt_done` signal is asserted when `dcnt` reaches zero.  
+- **Related Signals**: `cnt_done`, `dcnt`.  
+- **Condition**: `cnt_done` should be high when all bits in `dcnt` are zero.  
+
+**VI-14**  
+- **Description**: Verify the state machine transitions for IDLE, START, READ, WRITE, ACK, and STOP states.  
+- **Related Signals**: `c_state`, `core_cmd`, `cmd_ack`, `ack_out`.  
+- **Condition**:  
+  - Ensure the state transitions follow the expected sequence for each operation.  
+  - Verify that `cmd_ack` is asserted for one clock cycle at the end of each operation.  
+  - Verify that `ack_out` reflects the value of `core_rxd` in the ACK state.  
+
+**VI-15**  
+- **Description**: Verify that the `core_cmd` signal is correctly generated based on the current state and input commands (`start`, `stop`, `read`, `write`).  
+- **Related Signals**: `core_cmd`, `c_state`, `start`, `stop`, `read`, `write`.  
+- **Condition**: Ensure `core_cmd` matches the expected command for each state and input condition.  
+
+**VI-16**  
+- **Description**: Verify that the `dout` signal correctly reflects the value of the shift register (`sr`).  
+- **Related Signals**: `dout`, `sr`.  
+- **Condition**: Ensure `dout` matches the value of `sr` at all times.  
+
+---
+
+These verification items cover the critical functionality and signal interactions of the sub-modules, ensuring compliance with the Spec and correct operation of the I2C Master controller.
