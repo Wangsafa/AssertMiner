@@ -1,0 +1,138 @@
+### Step 1: Initial Review
+
+#### Top-Level Module Overview: `tate_pairing`
+- **Key Features:**
+  The `tate_pairing` module is the top-level module responsible for computing the Tate bilinear pairing on a supersingular elliptic curve. It takes input points on the elliptic curve, processes them through sub-modules implementing the Modified Duursma-Lee algorithm and power calculations, and outputs the computed pairing result. The module is designed to operate synchronously with a clock signal and provides a termination signal (`done`) to indicate the completion of the computation.
+
+- **Sub-Modules Instantiated:**
+  1. **`duursma_lee_algo`:** Implements the Modified Duursma-Lee algorithm to compute intermediate values required for the Tate pairing.
+  2. **`second_part`:** Performs the final power calculation on the intermediate result to produce the final Tate pairing value.
+  3. **`func6`:** A utility module used for specific arithmetic operations required by the top-level module and its sub-modules.
+
+---
+
+### Step 2: Extract Spec Descriptions for Each Sub-Module
+
+#### Sub-Module: `duursma_lee_algo`
+
+- **Module Overview:**
+  The `duursma_lee_algo` module implements the Modified Duursma-Lee algorithm, which is the first stage of the Tate pairing computation. It processes input points on the elliptic curve and computes an intermediate value (`t`) that is used in the second stage of the pairing calculation.
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                          |
+  | `xp`          | Input         | Variable  | X-coordinate of the first input point on the elliptic curve.                   |
+  | `yp`          | Input         | Variable  | Y-coordinate of the first input point on the elliptic curve.                   |
+  | `xr`          | Input         | Variable  | X-coordinate of the second input point on the elliptic curve.                  |
+  | `yr`          | Input         | Variable  | Y-coordinate of the second input point on the elliptic curve.                  |
+  | `done`        | Output        | 1         | Active-high signal indicating the completion of the algorithm.                 |
+  | `out`         | Output        | Variable  | Intermediate result (`t`) computed by the Modified Duursma-Lee algorithm.      |
+
+- **Functional Description:**
+  The `duursma_lee_algo` module takes in two points on the elliptic curve (`xp`, `yp`, `xr`, `yr`) and computes an intermediate value (`t`) using the Modified Duursma-Lee algorithm. The computation involves multiple arithmetic operations in the Galois field, including addition, multiplication, and cubic operations. The `done` signal is asserted high when the computation is complete, and the result is available on the `out` port.
+
+---
+
+#### Sub-Module: `second_part`
+
+- **Module Overview:**
+  The `second_part` module performs the second stage of the Tate pairing computation. It raises the intermediate value (`t`) computed by the `duursma_lee_algo` module to a specific power (`ε`) to produce the final pairing result.
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                          |
+  | `in`          | Input         | Variable  | Intermediate value (`t`) from the `duursma_lee_algo` module.                   |
+  | `done`        | Output        | 1         | Active-high signal indicating the completion of the power calculation.         |
+  | `out`         | Output        | Variable  | Final result of the Tate pairing computation.                                  |
+
+- **Functional Description:**
+  The `second_part` module takes the intermediate value (`t`) from the `duursma_lee_algo` module and raises it to the power of `ε` to produce the final pairing result. The computation involves modular exponentiation in the Galois field. The `done` signal is asserted high when the computation is complete, and the result is available on the `out` port.
+
+---
+
+#### Sub-Module: `func6`
+
+- **Module Overview:**
+  The `func6` module is a utility module that performs specific arithmetic operations required by the top-level module and its sub-modules. It is used to simplify and modularize the design.
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                          |
+  | `in`          | Input         | Variable  | Input signal for the arithmetic operation.                                     |
+  | `out`         | Output        | Variable  | Output signal after the arithmetic operation is performed.                     |
+
+- **Functional Description:**
+  The `func6` module performs a specific arithmetic operation on the input signal (`in`) and produces the result on the output signal (`out`). The exact operation depends on the context in which the module is used. The module operates synchronously with the clock signal and resets its internal state when the `reset` signal is asserted.
+
+---
+
+### Step 3: Deliver the Spec Descriptions
+
+#### Spec Description for `duursma_lee_algo`
+
+**Module Name:** `duursma_lee_algo`
+
+- **Module Overview:**
+  Implements the Modified Duursma-Lee algorithm for the first stage of the Tate pairing computation. Processes input points on the elliptic curve and computes an intermediate value (`t`).
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                          |
+  | `xp`          | Input         | Variable  | X-coordinate of the first input point on the elliptic curve.                   |
+  | `yp`          | Input         | Variable  | Y-coordinate of the first input point on the elliptic curve.                   |
+  | `xr`          | Input         | Variable  | X-coordinate of the second input point on the elliptic curve.                  |
+  | `yr`          | Input         | Variable  | Y-coordinate of the second input point on the elliptic curve.                  |
+  | `done`        | Output        | 1         | Active-high signal indicating the completion of the algorithm.                 |
+  | `out`         | Output        | Variable  | Intermediate result (`t`) computed by the Modified Duursma-Lee algorithm.      |
+
+- **Functional Description:**
+  The module computes an intermediate value (`t`) using the Modified Duursma-Lee algorithm. It processes the input points (`xp`, `yp`, `xr`, `yr`) through a series of arithmetic operations in the Galois field. The `done` signal is asserted high when the computation is complete, and the result is available on the `out` port.
+
+---
+
+#### Spec Description for `second_part`
+
+**Module Name:** `second_part`
+
+- **Module Overview:**
+  Performs the second stage of the Tate pairing computation by raising the intermediate value (`t`) to a specific power (`ε`).
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                          |
+  | `in`          | Input         | Variable  | Intermediate value (`t`) from the `duursma_lee_algo` module.                   |
+  | `done`        | Output        | 1         | Active-high signal indicating the completion of the power calculation.         |
+  | `out`         | Output        | Variable  | Final result of the Tate pairing computation.                                  |
+
+- **Functional Description:**
+  The module raises the intermediate value (`t`) to the power of `ε` using modular exponentiation in the Galois field. The `done` signal is asserted high when the computation is complete, and the result is available on the `out` port.
+
+---
+
+#### Spec Description for `func6`
+
+**Module Name:** `func6`
+
+- **Module Overview:**
+  A utility module for performing specific arithmetic operations required by the Tate pairing computation.
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                          |
+  | `in`          | Input         | Variable  | Input signal for the arithmetic operation.                                     |
+  | `out`         | Output        | Variable  | Output signal after the arithmetic operation is performed.                     |
+
+- **Functional Description:**
+  The module performs a specific arithmetic operation on the input signal (`in`) and produces the result on the output signal (`out`). It operates synchronously with the clock signal and resets its internal state when the `reset` signal is asserted.
