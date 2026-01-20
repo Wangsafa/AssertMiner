@@ -1,0 +1,117 @@
+### Step 1: Initial Review
+
+#### **Top-Level Module Overview: `keccak`**
+- **Key Features:**
+  The `keccak` module is the top-level implementation of the SHA-3 cryptographic hash function. It orchestrates the padding of input data, the application of the Keccak permutation function, and the generation of the final hash output. The module is designed to handle variable input lengths and supports high-throughput and low-throughput configurations.
+
+- **Sub-Modules Instantiated:**
+  1. **`padder`:** Handles the padding of input data to ensure it conforms to the required block size for the Keccak permutation function. It also manages buffering and signaling readiness of padded data.
+  2. **`f_permutation`:** Implements the Keccak permutation function, which processes the padded input data in multiple rounds to generate the hash output.
+  3. **`padder1`:** A submodule within `padder` that processes input data and aligns it to the required bit-width.
+  4. **`rconst2in1`:** A submodule within `f_permutation` that generates round constants for the Keccak permutation function.
+  5. **`round2in1`:** A submodule within `f_permutation` that performs two rounds of the Keccak permutation function in a single clock cycle.
+
+---
+
+### Step 2: Extract Spec Descriptions for Each Sub-Module
+
+#### **1. Module: `padder`**
+
+- **Module Overview:**
+  The `padder` module is responsible for preparing the input data for the Keccak permutation function. It applies the required padding scheme to the input data, ensuring that the data conforms to the block size of 576 bits. The module also manages buffering and signals when the padded data is ready for processing.
+
+- **Port Descriptions:**
+  | **Port Name**   | **Width** | **Direction** | **Description**                                                                 |
+  |------------------|-----------|---------------|---------------------------------------------------------------------------------|
+  | `clk`           | 1         | Input         | Clock signal for synchronous operation.                                        |
+  | `reset`         | 1         | Input         | Synchronous reset signal. Active high.                                         |
+  | `in`            | 64        | Input         | Input data to be padded.                                                       |
+  | `in_ready`      | 1         | Input         | Indicates whether the input data is valid.                                     |
+  | `is_last`       | 1         | Input         | Indicates whether the current input is the last block of data.                 |
+  | `byte_num`      | 3         | Input         | Specifies the number of valid bytes in the input data.                         |
+  | `buffer_full`   | 1         | Output        | Indicates whether the internal buffer is full.                                 |
+  | `out`           | 576       | Output        | Padded output data, ready for the Keccak permutation function.                 |
+  | `out_ready`     | 1         | Output        | Indicates whether the padded output data is valid and ready for processing.    |
+  | `f_ack`         | 1         | Input         | Acknowledgment signal from the `f_permutation` module, indicating readiness.   |
+
+- **Functional Description:**
+  The `padder` module receives input data in chunks of up to 64 bits and applies the Keccak padding scheme. It uses an internal buffer to assemble the input data into 576-bit blocks. When the buffer is full, the module signals the `f_permutation` module that the padded data is ready. The `padder` waits for an acknowledgment (`f_ack`) from the `f_permutation` module before clearing the buffer and preparing the next block of data. If the input data is less than 576 bits, the module appends the required padding bits to complete the block.
+
+---
+
+#### **2. Module: `padder1`**
+
+- **Module Overview:**
+  The `padder1` module is a helper module within the `padder` that processes input data and aligns it to the required bit-width for the padding operation.
+
+- **Port Descriptions:**
+  | **Port Name** | **Width** | **Direction** | **Description**                                      |
+  |---------------|-----------|---------------|------------------------------------------------------|
+  | `in`          | 64        | Input         | Input data to be aligned.                           |
+  | `byte_num`    | 3         | Input         | Specifies the number of valid bytes in the input.   |
+  | `out`         | 64        | Output        | Aligned output data, ready for further processing.  |
+
+- **Functional Description:**
+  The `padder1` module takes the input data and aligns it to the most significant bits based on the value of `byte_num`. This ensures that the input data is correctly positioned for the padding operation. The module outputs the aligned data to the `padder` module.
+
+---
+
+#### **3. Module: `f_permutation`**
+
+- **Module Overview:**
+  The `f_permutation` module implements the Keccak permutation function, which is the core operation of the SHA-3 hash algorithm. It processes the padded input data in multiple rounds to generate the hash output.
+
+- **Port Descriptions:**
+  | **Port Name**   | **Width**  | **Direction** | **Description**                                                                 |
+  |------------------|------------|---------------|---------------------------------------------------------------------------------|
+  | `clk`           | 1          | Input         | Clock signal for synchronous operation.                                        |
+  | `reset`         | 1          | Input         | Synchronous reset signal. Active high.                                         |
+  | `in`            | 576        | Input         | Padded input data to be processed.                                             |
+  | `in_ready`      | 1          | Input         | Indicates whether the input data is valid.                                     |
+  | `ack`           | 1          | Output        | Acknowledgment signal to the `padder` module, indicating readiness.            |
+  | `out`           | 1600       | Output        | Output state after applying the Keccak permutation function.                   |
+  | `out_ready`     | 1          | Output        | Indicates whether the output state is valid and ready for further processing.   |
+
+- **Functional Description:**
+  The `f_permutation` module receives padded input data from the `padder` module and applies the Keccak permutation function. The function consists of 24 rounds, each involving a series of transformations (theta, rho, pi, chi, and iota). The module uses the `rconst2in1` and `round2in1` submodules to generate round constants and perform the transformations. The final output state is stored in a 1600-bit register and is signaled as ready (`out_ready`) when the computation is complete.
+
+---
+
+#### **4. Module: `rconst2in1`**
+
+- **Module Overview:**
+  The `rconst2in1` module generates the round constants required for the Keccak permutation function. These constants are used in the iota step of each round.
+
+- **Port Descriptions:**
+  | **Port Name** | **Width** | **Direction** | **Description**                                      |
+  |---------------|-----------|---------------|------------------------------------------------------|
+  | `i`           | 12        | Input         | Round index, used to select the appropriate constant.|
+  | `rc1`         | 64        | Output        | First round constant for the current round.          |
+  | `rc2`         | 64        | Output        | Second round constant for the current round.         |
+
+- **Functional Description:**
+  The `rconst2in1` module computes the round constants (`rc1` and `rc2`) based on the round index (`i`). These constants are used by the `round2in1` module during the iota step of the Keccak permutation function.
+
+---
+
+#### **5. Module: `round2in1`**
+
+- **Module Overview:**
+  The `round2in1` module performs two rounds of the Keccak permutation function in a single clock cycle. It applies the five steps of the permutation function (theta, rho, pi, chi, and iota) to the input state.
+
+- **Port Descriptions:**
+  | **Port Name**       | **Width**  | **Direction** | **Description**                                      |
+  |----------------------|------------|---------------|------------------------------------------------------|
+  | `in`                | 1600       | Input         | Input state to be processed.                        |
+  | `round_const_1`     | 64         | Input         | First round constant for the current round.         |
+  | `round_const_2`     | 64         | Input         | Second round constant for the current round.        |
+  | `out`               | 1600       | Output        | Output state after applying two rounds of the permutation function. |
+
+- **Functional Description:**
+  The `round2in1` module takes the input state and applies two rounds of the Keccak permutation function. It uses the round constants (`round_const_1` and `round_const_2`) during the iota step of each round. The output state is passed back to the `f_permutation` module for further processing.
+
+---
+
+### Step 3: Deliver the Spec Descriptions
+
+The Spec descriptions for each sub-module have been provided in separate sections above. Let me know if you need further clarification or additional details!
