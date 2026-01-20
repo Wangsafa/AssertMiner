@@ -1,0 +1,126 @@
+### Step 2: Extract Verification Items from Sub-Modules
+
+Below are the verification items (VIs) extracted for each sub-module based on the provided spec description, module relationships, and RTL code. Each verification item includes a unique identifier, a description, related signals, and specific conditions or scenarios.
+
+---
+
+### **Sub-Module: `padder`**
+
+#### **Verification Items for `padder`**
+- **VI-1:** Verify that the `out` signal is updated correctly when `update` is asserted.
+  - **Related Signals:** `out`, `update`, `v1`
+  - **Condition:** Check that `out` shifts left by 64 bits and appends `v1` when `update` is high.
+
+- **VI-2:** Verify that the `buffer_full` signal is asserted when the internal buffer is full.
+  - **Related Signals:** `buffer_full`, `i`
+  - **Condition:** Check that `buffer_full` is asserted when the most significant bit of `i` is set.
+
+- **VI-3:** Verify that the `out_ready` signal is asserted when the buffer is full.
+  - **Related Signals:** `out_ready`, `buffer_full`
+  - **Condition:** Check that `out_ready` is high when `buffer_full` is high.
+
+- **VI-4:** Verify that the `state` signal transitions to 1 when `is_last` is asserted.
+  - **Related Signals:** `state`, `is_last`
+  - **Condition:** Check that `state` transitions to 1 on the rising edge of `clk` when `is_last` is high.
+
+- **VI-5:** Verify that the `done` signal is asserted when `state` is 1 and `out_ready` is high.
+  - **Related Signals:** `done`, `state`, `out_ready`
+  - **Condition:** Check that `done` is set to 1 when `state` is 1 and `out_ready` is high.
+
+- **VI-6:** Verify that the `accept` signal is asserted only when `state` is 0, `in_ready` is high, and `buffer_full` is low.
+  - **Related Signals:** `accept`, `state`, `in_ready`, `buffer_full`
+  - **Condition:** Check that `accept` is high only under the specified conditions.
+
+- **VI-7:** Verify that the `update` signal is asserted when `accept` is high or when `state` is 1 and `buffer_full` is low, and `done` is low.
+  - **Related Signals:** `update`, `accept`, `state`, `buffer_full`, `done`
+  - **Condition:** Check that `update` is high under the specified conditions.
+
+- **VI-8:** Verify that the `v1` signal is correctly updated based on the `state` and `is_last` signals.
+  - **Related Signals:** `v1`, `state`, `is_last`, `v0`, `in`
+  - **Condition:** Check that `v1` is set to `v0` when `is_last` is high, and to `in` when `is_last` is low.
+
+---
+
+### **Sub-Module: `padder1`**
+
+#### **Verification Items for `padder1`**
+- **VI-9:** Verify that the `out` signal is correctly aligned based on the value of `byte_num`.
+  - **Related Signals:** `out`, `in`, `byte_num`
+  - **Condition:** Check that `out` is aligned to the most significant bits of `in` based on the value of `byte_num`.
+
+---
+
+### **Sub-Module: `f_permutation`**
+
+#### **Verification Items for `f_permutation`**
+- **VI-10:** Verify that the `ack` signal is asserted when `in_ready` is high and `calc` is low.
+  - **Related Signals:** `ack`, `in_ready`, `calc`
+  - **Condition:** Check that `ack` is high when `in_ready` is high and `calc` is low.
+
+- **VI-11:** Verify that the `out_ready` signal is asserted only after the last round of the permutation function.
+  - **Related Signals:** `out_ready`, `i`
+  - **Condition:** Check that `out_ready` is high only when the 11th bit of `i` is set.
+
+- **VI-12:** Verify that the `calc` signal is asserted when `accept` is high or when `calc` is already high and the last round has not been reached.
+  - **Related Signals:** `calc`, `accept`, `i`
+  - **Condition:** Check that `calc` is high under the specified conditions.
+
+- **VI-13:** Verify that the `round_in` signal is correctly updated based on the `accept` signal.
+  - **Related Signals:** `round_in`, `in`, `out`, `accept`
+  - **Condition:** Check that `round_in` is set to `{in ^ out[1599:1024], out[1023:0]}` when `accept` is high, and to `out` otherwise.
+
+- **VI-14:** Verify that the `out` signal is updated correctly after each round of the permutation function.
+  - **Related Signals:** `out`, `round_out`, `update`
+  - **Condition:** Check that `out` is updated to `round_out` when `update` is high.
+
+---
+
+### **Sub-Module: `rconst2in1`**
+
+#### **Verification Items for `rconst2in1`**
+- **VI-15:** Verify that the `rc1` and `rc2` signals are correctly generated based on the input `i`.
+  - **Related Signals:** `rc1`, `rc2`, `i`
+  - **Condition:** Check that `rc1` and `rc2` are generated according to the specified logic in the RTL code.
+
+---
+
+### **Sub-Module: `round2in1`**
+
+#### **Verification Items for `round2in1`**
+- **VI-16:** Verify that the `a[x][y]` signals are correctly assigned from the input `in`.
+  - **Related Signals:** `a[x][y]`, `in`
+  - **Condition:** Check that `a[x][y]` is assigned to the corresponding bits of `in` based on the specified indexing.
+
+- **VI-17:** Verify that the `b[x]` signals are correctly calculated as the XOR of all `a[x][y]` values for a given `x`.
+  - **Related Signals:** `b[x]`, `a[x][y]`
+  - **Condition:** Check that `b[x]` is the XOR of all `a[x][y]` values for `y = 0 to 4`.
+
+- **VI-18:** Verify that the `c[x][y]` signals are correctly calculated in the `theta` step.
+  - **Related Signals:** `c[x][y]`, `a[x][y]`, `b[x]`
+  - **Condition:** Check that `c[x][y]` is calculated as `a[x][y] ^ b[sub_1(x)] ^ rot_up_1(b[add_1(x)])`.
+
+- **VI-19:** Verify that the `d[x][y]` signals are correctly calculated in the `rho` step.
+  - **Related Signals:** `d[x][y]`, `c[x][y]`
+  - **Condition:** Check that `d[x][y]` is calculated as a rotated version of `c[x][y]` based on the specified rotation values.
+
+- **VI-20:** Verify that the `e[x][y]` signals are correctly calculated in the `pi` step.
+  - **Related Signals:** `e[x][y]`, `d[x][y]`
+  - **Condition:** Check that `e[x][y]` is assigned to the corresponding `d[x][y]` values based on the specified permutation.
+
+- **VI-21:** Verify that the `f[x][y]` signals are correctly calculated in the `chi` step.
+  - **Related Signals:** `f[x][y]`, `e[x][y]`
+  - **Condition:** Check that `f[x][y]` is calculated as `e[x][y] ^ ((~e[add_1(x)][y]) & e[add_2(x)][y])`.
+
+- **VI-22:** Verify that the `g[x][y]` signals are correctly calculated in the `iota` step.
+  - **Related Signals:** `g[x][y]`, `f[x][y]`, `round_const_1`
+  - **Condition:** Check that `g[x][y]` is calculated as `f[x][y] ^ round_const_1` for `x = 0, y = 0`, and as `f[x][y]` otherwise.
+
+- **VI-23:** Verify that the `out` signal is correctly assigned from the `g[x][y]` signals.
+  - **Related Signals:** `out`, `g[x][y]`
+  - **Condition:** Check that `out` is assigned to the corresponding `g[x][y]` values based on the specified indexing.
+
+---
+
+### Summary
+
+The verification items above cover all critical functional aspects of the sub-modules, ensuring that the design behaves as expected under various conditions. Each verification item is tied to specific signals and functionality, providing a clear roadmap for creating test cases. Let me know if you need further clarification or additional details!
