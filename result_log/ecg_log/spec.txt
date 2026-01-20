@@ -1,0 +1,109 @@
+### Step 1: Initial Review
+
+#### **Top-Level Module Overview: `point_scalar_mult`**
+- **Key Features:**
+  - The `point_scalar_mult` module is the top-level module designed to perform scalar multiplication on elliptic curve points. It computes the result of multiplying a scalar value `c` with a point `(x1, y1)` on the elliptic curve. The result is another point `(x3, y3)` on the curve.
+  - The module supports synchronous operation with a clock (`clk`) and reset (`reset`) signals. It also provides a `done` signal to indicate the completion of the computation.
+  - The module instantiates sub-modules to perform point addition (`point_add`) and other arithmetic operations required for scalar multiplication.
+
+- **Sub-Modules Instantiated:**
+  1. **`point_add`:** Handles the addition of two elliptic curve points. It is used as a building block for scalar multiplication.
+  2. **`func6`:** Likely performs auxiliary operations or control logic required for scalar multiplication.
+  3. **Other Arithmetic Modules (e.g., `f3m_mult`, `f3m_inv`):** These modules are indirectly instantiated through `point_add` and are responsible for finite field arithmetic operations such as multiplication, inversion, and addition.
+
+---
+
+### Step 2: Extract Spec Descriptions for Each Sub-Module
+
+#### **Sub-Module 1: `point_add`**
+
+- **Module Overview:**
+  - The `point_add` module performs the addition of two points `(x1, y1)` and `(x2, y2)` on an elliptic curve. It outputs the resulting point `(x3, y3)`. If either input point is the point at infinity, the module handles this special case appropriately.
+  - This module is a fundamental building block for elliptic curve operations, including scalar multiplication.
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                           |
+  | `x1`          | Input         | 194       | X-coordinate of the first input point.                                          |
+  | `y1`          | Input         | 194       | Y-coordinate of the first input point.                                          |
+  | `zero1`       | Input         | 1         | Indicates if the first input point is the point at infinity (active high).      |
+  | `x2`          | Input         | 194       | X-coordinate of the second input point.                                         |
+  | `y2`          | Input         | 194       | Y-coordinate of the second input point.                                         |
+  | `zero2`       | Input         | 1         | Indicates if the second input point is the point at infinity (active high).     |
+  | `done`        | Output        | 1         | Indicates when the computation is complete (active high).                       |
+  | `x3`          | Output        | 194       | X-coordinate of the resulting point after addition.                             |
+  | `y3`          | Output        | 194       | Y-coordinate of the resulting point after addition.                             |
+  | `zero3`       | Output        | 1         | Indicates if the resulting point is the point at infinity (active high).        |
+
+- **Functional Description:**
+  - The `point_add` module computes the sum of two elliptic curve points `(x1, y1)` and `(x2, y2)`. The result is output as `(x3, y3)`.
+  - If either input point is the point at infinity (indicated by `zero1` or `zero2`), the module handles this case by returning the other point as the result.
+  - The `done` signal is asserted high when the computation is complete, and the output values (`x3`, `y3`, `zero3`) are valid.
+
+---
+
+#### **Sub-Module 2: `func6`**
+
+- **Module Overview:**
+  - The `func6` module is likely a control or auxiliary module used to support the scalar multiplication process. It may handle specific control logic or intermediate computations.
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                           |
+  | `in`          | Input         | 1         | Input signal for the module's operation.                                        |
+  | `out`         | Output        | 1         | Output signal generated by the module.                                          |
+
+- **Functional Description:**
+  - The `func6` module processes the input signal `in` and generates an output signal `out`. The exact functionality is not explicitly described but is likely related to control or intermediate computations for scalar multiplication.
+  - The module operates synchronously with the clock (`clk`) and reset (`reset`) signals.
+
+---
+
+#### **Sub-Module 3: `f3m_mult`**
+
+- **Module Overview:**
+  - The `f3m_mult` module performs finite field multiplication in the Galois Field GF(3^m). It is used for arithmetic operations required in elliptic curve computations.
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                           |
+  | `A`           | Input         | 194       | First operand for the multiplication.                                           |
+  | `B`           | Input         | 194       | Second operand for the multiplication.                                          |
+  | `C`           | Output        | 194       | Result of the multiplication.                                                   |
+  | `done`        | Output        | 1         | Indicates when the multiplication is complete (active high).                    |
+
+- **Functional Description:**
+  - The `f3m_mult` module computes the product of two inputs `A` and `B` in the finite field GF(3^m). The result is output as `C`.
+  - The `done` signal is asserted high when the computation is complete, and the output value `C` is valid.
+
+---
+
+#### **Sub-Module 4: `f3m_inv`**
+
+- **Module Overview:**
+  - The `f3m_inv` module performs finite field inversion in the Galois Field GF(3^m). It is used for division and other operations in elliptic curve computations.
+
+- **Port Descriptions:**
+  | **Port Name** | **Direction** | **Width** | **Description**                                                                 |
+  |---------------|---------------|-----------|---------------------------------------------------------------------------------|
+  | `clk`         | Input         | 1         | Clock signal for synchronous operation.                                         |
+  | `reset`       | Input         | 1         | Active-high synchronous reset signal.                                           |
+  | `A`           | Input         | 194       | Operand for the inversion.                                                     |
+  | `C`           | Output        | 194       | Result of the inversion.                                                       |
+  | `done`        | Output        | 1         | Indicates when the inversion is complete (active high).                         |
+
+- **Functional Description:**
+  - The `f3m_inv` module computes the multiplicative inverse of the input `A` in the finite field GF(3^m). The result is output as `C`.
+  - The `done` signal is asserted high when the computation is complete, and the output value `C` is valid.
+
+---
+
+### Step 3: Deliver the Spec Descriptions
+
+The extracted Spec descriptions for each sub-module have been provided in separate sections above. Each section includes the module name, port descriptions, and a functional overview. Let me know if you need further details or additional modules analyzed!
