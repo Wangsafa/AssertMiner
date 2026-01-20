@@ -1,0 +1,155 @@
+### Step 2: Extract Verification Items from Sub-Modules ###
+
+Below are the verification items (VIs) extracted for each sub-module based on the provided spec description and the relationship between the modules. Each verification item includes a unique identifier, a description, the related signals or functionality, and any specific conditions or scenarios.
+
+---
+
+### Sub-Module: `duursma_lee_algo`
+
+#### Verification Items:
+- **VI-1**: Verify that the `done` signal is asserted high when the computation is complete.
+  - **Related Signals**: `done`, `i[0]`, `v8`
+  - **Condition**: Check that `done` is asserted only when the `finish` condition (`i[0] == 1`) is met.
+
+- **VI-2**: Verify that the intermediate value `t` is updated correctly during each iteration.
+  - **Related Signals**: `t`, `v8`
+  - **Condition**: Ensure that `t` is updated to `v8` when the `change` signal is asserted.
+
+- **VI-3**: Verify the correct computation of `mu` as `a^9 + x + d`.
+  - **Related Signals**: `mu`, `a`, `x`, `d`
+  - **Condition**: Check that `mu` is computed correctly using the inputs `a`, `x`, and `d`.
+
+- **VI-4**: Verify the correct computation of `nmu` as the negation of `mu`.
+  - **Related Signals**: `nmu`, `mu`
+  - **Condition**: Ensure that `nmu` is the two's complement of `mu`.
+
+- **VI-5**: Verify the correct computation of `v5` as `-mu^2`.
+  - **Related Signals**: `v5`, `mu`
+  - **Condition**: Check that `v5` is computed as the square of `mu` negated.
+
+- **VI-6**: Verify the correct computation of `v6` as `-(b^9) * y`.
+  - **Related Signals**: `v6`, `b`, `y`
+  - **Condition**: Ensure that `v6` is computed as the product of `b^9` and `y`, negated.
+
+- **VI-7**: Verify the correct computation of `v7` as `t^3`.
+  - **Related Signals**: `v7`, `t`
+  - **Condition**: Check that `v7` is computed as the cube of `t`.
+
+- **VI-8**: Verify the correct computation of `v8` as `(t^3) * g`.
+  - **Related Signals**: `v8`, `v7`, `g`
+  - **Condition**: Ensure that `v8` is computed as the product of `v7` and `g`.
+
+- **VI-9**: Verify the correct computation of `d` as `d - 1`.
+  - **Related Signals**: `d`, `v9`
+  - **Condition**: Check that `d` is decremented correctly using `v9`.
+
+- **VI-10**: Verify that the `out` signal is updated correctly with the final value of `v8`.
+  - **Related Signals**: `out`, `v8`
+  - **Condition**: Ensure that `out` is assigned the value of `v8` when the computation is complete.
+
+---
+
+### Sub-Module: `second_part`
+
+#### Verification Items:
+- **VI-11**: Verify that the `done` signal is asserted high when the computation is complete.
+  - **Related Signals**: `done`, `K[0]`
+  - **Condition**: Check that `done` is asserted only when the `K[0]` condition is met.
+
+- **VI-12**: Verify the correct computation of `v3` as `a0^2 + a1^2`.
+  - **Related Signals**: `v3`, `a0`, `a1`
+  - **Condition**: Ensure that `v3` is computed as the sum of the squares of `a0` and `a1`.
+
+- **VI-13**: Verify the correct computation of `v4` as the inverse of `v3`.
+  - **Related Signals**: `v4`, `v3`
+  - **Condition**: Check that `v4` is computed as the modular inverse of `v3`.
+
+- **VI-14**: Verify the correct computation of `v6` as `(a0 + a1)^2`.
+  - **Related Signals**: `v6`, `a0`, `a1`
+  - **Condition**: Ensure that `v6` is computed as the square of the sum of `a0` and `a1`.
+
+- **VI-15**: Verify the correct computation of `v7` as `(a1^2) * (a0^2 + a1^2)^-1`.
+  - **Related Signals**: `v7`, `a1`, `v4`
+  - **Condition**: Check that `v7` is computed as the product of `a1^2` and `v4`.
+
+- **VI-16**: Verify the correct computation of `v8` as `-(a0 + a1)^2 * (a0^2 + a1^2)^-1`.
+  - **Related Signals**: `v8`, `v6`, `v4`
+  - **Condition**: Ensure that `v8` is computed as the product of `-v6` and `v4`.
+
+- **VI-17**: Verify the correct computation of `c` as the final result after basis conversion.
+  - **Related Signals**: `c`, `b0`, `b1`
+  - **Condition**: Check that `c` is correctly assigned the values of `b0` and `b1` after basis conversion.
+
+---
+
+### Sub-Module: `func6`
+
+#### Verification Items:
+- **VI-18**: Verify that the `out` signal is asserted high when a rising edge is detected on the `in` signal.
+  - **Related Signals**: `out`, `in`, `reg1`, `reg2`
+  - **Condition**: Check that `out` is asserted when `reg2` is low and `reg1` is high.
+
+- **VI-19**: Verify that the internal registers `reg1` and `reg2` are reset correctly when the `reset` signal is asserted.
+  - **Related Signals**: `reg1`, `reg2`, `reset`
+  - **Condition**: Ensure that `reg1` and `reg2` are set to 0 when `reset` is high.
+
+---
+
+### Sub-Module: `f3m_mult`
+
+#### Verification Items:
+- **VI-20**: Verify that the `done` signal is asserted high when the multiplication is complete.
+  - **Related Signals**: `done`, `i[0]`
+  - **Condition**: Check that `done` is asserted only when the `i[0]` condition is met.
+
+- **VI-21**: Verify the correct computation of the output `C` as the product of inputs `A` and `B`.
+  - **Related Signals**: `C`, `A`, `B`
+  - **Condition**: Ensure that `C` is computed as the product of `A` and `B` in GF(3^m).
+
+- **VI-22**: Verify that the internal registers `x`, `y`, and `z` are updated correctly during each iteration.
+  - **Related Signals**: `x`, `y`, `z`
+  - **Condition**: Check that `x`, `y`, and `z` are updated based on the intermediate results.
+
+---
+
+### Sub-Module: `f3m_add`
+
+#### Verification Items:
+- **VI-23**: Verify the correct computation of the output `C` as the sum of inputs `A` and `B`.
+  - **Related Signals**: `C`, `A`, `B`
+  - **Condition**: Ensure that `C` is computed as the sum of `A` and `B` in GF(3^m).
+
+---
+
+### Sub-Module: `f3m_neg`
+
+#### Verification Items:
+- **VI-24**: Verify the correct computation of the output `c` as the negation of input `a`.
+  - **Related Signals**: `c`, `a`
+  - **Condition**: Ensure that `c` is computed as the negation of `a` in GF(3^m).
+
+---
+
+### Sub-Module: `f3m_cubic`
+
+#### Verification Items:
+- **VI-25**: Verify the correct computation of the output `out` as the cube of the input `in`.
+  - **Related Signals**: `out`, `in`
+  - **Condition**: Ensure that `out` is computed as the cube of `in` in GF(3^m).
+
+---
+
+### Sub-Module: `f3m_inv`
+
+#### Verification Items:
+- **VI-26**: Verify that the `done` signal is asserted high when the inversion is complete.
+  - **Related Signals**: `done`, `i[0]`
+  - **Condition**: Check that `done` is asserted only when the `i[0]` condition is met.
+
+- **VI-27**: Verify the correct computation of the output `C` as the modular inverse of input `A`.
+  - **Related Signals**: `C`, `A`
+  - **Condition**: Ensure that `C` is computed as the modular inverse of `A` in GF(3^m).
+
+---
+
+These verification items cover the key functional requirements and signal interactions for the sub-modules. Let me know if you need further details or additional verification items!
