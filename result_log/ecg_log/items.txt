@@ -1,0 +1,166 @@
+### Verification Items for Submodules Based on the Spec Description and RTL Code ###
+
+---
+
+#### **Submodule: `point_add`**
+The `point_add` module performs the addition of two points `(x1, y1)` and `(x2, y2)` on an elliptic curve. It handles special cases such as points at infinity and outputs the resulting point `(x3, y3)`.
+
+---
+
+**VI-1**  
+**Description:** Verify that the `point_add` module correctly computes the addition of two valid points `(x1, y1)` and `(x2, y2)` on the elliptic curve.  
+**Related Signals:** `x1`, `y1`, `x2`, `y2`, `x3`, `y3`, `done`.  
+**Condition:** Provide valid inputs for `(x1, y1)` and `(x2, y2)` and check if `(x3, y3)` matches the expected result.  
+**Expected Result:** The output `(x3, y3)` should be the correct sum of the two input points.
+
+---
+
+**VI-2**  
+**Description:** Verify the handling of the point at infinity for the first input point `(x1, y1)`.  
+**Related Signals:** `zero1`, `x2`, `y2`, `x3`, `y3`, `zero3`.  
+**Condition:** Set `zero1 = 1` (indicating `(x1, y1)` is the point at infinity) and provide valid inputs for `(x2, y2)`.  
+**Expected Result:** The output `(x3, y3)` should equal `(x2, y2)`, and `zero3` should match `zero2`.
+
+---
+
+**VI-3**  
+**Description:** Verify the handling of the point at infinity for the second input point `(x2, y2)`.  
+**Related Signals:** `zero2`, `x1`, `y1`, `x3`, `y3`, `zero3`.  
+**Condition:** Set `zero2 = 1` (indicating `(x2, y2)` is the point at infinity) and provide valid inputs for `(x1, y1)`.  
+**Expected Result:** The output `(x3, y3)` should equal `(x1, y1)`, and `zero3` should match `zero1`.
+
+---
+
+**VI-4**  
+**Description:** Verify the special case where the two input points are inverses of each other (`P1 = -P2`).  
+**Related Signals:** `x1`, `y1`, `x2`, `y2`, `zero3`.  
+**Condition:** Provide inputs such that `(x1, y1)` and `(x2, y2)` are inverses (e.g., `x1 = x2` and `y1 = -y2`).  
+**Expected Result:** The output `zero3` should be asserted (indicating the result is the point at infinity).
+
+---
+
+**VI-5**  
+**Description:** Verify the special case where the two input points are identical (`P1 = P2`).  
+**Related Signals:** `x1`, `y1`, `x2`, `y2`, `x3`, `y3`, `done`.  
+**Condition:** Provide inputs such that `(x1, y1) = (x2, y2)`.  
+**Expected Result:** The output `(x3, y3)` should be the result of doubling the point `(x1, y1)`.
+
+---
+
+**VI-6**  
+**Description:** Verify the `done` signal behavior for the `point_add` module.  
+**Related Signals:** `done`, `clk`, `reset`.  
+**Condition:** Assert `reset` and provide valid inputs. Check the timing of the `done` signal after computation starts.  
+**Expected Result:** The `done` signal should be asserted high only when the computation is complete.
+
+---
+
+#### **Submodule: `func6`**
+The `func6` module generates a pulse signal (`out`) when a specific transition (`in` changes from 0 to 1) occurs.
+
+---
+
+**VI-7**  
+**Description:** Verify that the `func6` module generates a pulse on the `out` signal when the `in` signal transitions from 0 to 1.  
+**Related Signals:** `in`, `out`, `clk`, `reset`.  
+**Condition:** Provide a sequence of `in` transitions (e.g., 0 → 1 → 0) and monitor the `out` signal.  
+**Expected Result:** The `out` signal should generate a single pulse (1 clock cycle) when `in` transitions from 0 to 1.
+
+---
+
+**VI-8**  
+**Description:** Verify the reset behavior of the `func6` module.  
+**Related Signals:** `reset`, `out`.  
+**Condition:** Assert the `reset` signal and monitor the `out` signal.  
+**Expected Result:** The `out` signal should remain low during the reset period.
+
+---
+
+#### **Submodule: `f3m_mult`**
+The `f3m_mult` module performs finite field multiplication in GF(3^m).
+
+---
+
+**VI-9**  
+**Description:** Verify the correctness of the multiplication operation in GF(3^m).  
+**Related Signals:** `A`, `B`, `C`, `done`.  
+**Condition:** Provide valid inputs `A` and `B` and monitor the output `C` after the `done` signal is asserted.  
+**Expected Result:** The output `C` should be the product of `A` and `B` in GF(3^m).
+
+---
+
+**VI-10**  
+**Description:** Verify the `done` signal behavior for the `f3m_mult` module.  
+**Related Signals:** `done`, `clk`, `reset`.  
+**Condition:** Assert `reset` and provide valid inputs. Check the timing of the `done` signal after computation starts.  
+**Expected Result:** The `done` signal should be asserted high only when the multiplication is complete.
+
+---
+
+**VI-11**  
+**Description:** Verify the reset behavior of the `f3m_mult` module.  
+**Related Signals:** `reset`, `C`, `done`.  
+**Condition:** Assert the `reset` signal and monitor the `C` and `done` signals.  
+**Expected Result:** The `C` signal should be reset to 0, and the `done` signal should be deasserted during the reset period.
+
+---
+
+#### **Submodule: `f3m_inv`**
+The `f3m_inv` module performs finite field inversion in GF(3^m).
+
+---
+
+**VI-12**  
+**Description:** Verify the correctness of the inversion operation in GF(3^m).  
+**Related Signals:** `A`, `C`, `done`.  
+**Condition:** Provide a valid input `A` and monitor the output `C` after the `done` signal is asserted.  
+**Expected Result:** The output `C` should be the multiplicative inverse of `A` in GF(3^m)`.
+
+---
+
+**VI-13**  
+**Description:** Verify the `done` signal behavior for the `f3m_inv` module.  
+**Related Signals:** `done`, `clk`, `reset`.  
+**Condition:** Assert `reset` and provide a valid input. Check the timing of the `done` signal after computation starts.  
+**Expected Result:** The `done` signal should be asserted high only when the inversion is complete.
+
+---
+
+**VI-14**  
+**Description:** Verify the reset behavior of the `f3m_inv` module.  
+**Related Signals:** `reset`, `C`, `done`.  
+**Condition:** Assert the `reset` signal and monitor the `C` and `done` signals.  
+**Expected Result:** The `C` signal should be reset to 0, and the `done` signal should be deasserted during the reset period.
+
+---
+
+#### **Submodule: `point_scalar_mult`**
+The `point_scalar_mult` module performs scalar multiplication of a point `(x1, y1)` by a scalar `c` on the elliptic curve.
+
+---
+
+**VI-15**  
+**Description:** Verify the correctness of scalar multiplication for a valid point `(x1, y1)` and scalar `c`.  
+**Related Signals:** `x1`, `y1`, `c`, `x3`, `y3`, `done`.  
+**Condition:** Provide valid inputs for `(x1, y1)` and `c` and monitor the output `(x3, y3)` after the `done` signal is asserted.  
+**Expected Result:** The output `(x3, y3)` should be the result of multiplying `(x1, y1)` by `c`.
+
+---
+
+**VI-16**  
+**Description:** Verify the `done` signal behavior for the `point_scalar_mult` module.  
+**Related Signals:** `done`, `clk`, `reset`.  
+**Condition:** Assert `reset` and provide valid inputs. Check the timing of the `done` signal after computation starts.  
+**Expected Result:** The `done` signal should be asserted high only when the scalar multiplication is complete.
+
+---
+
+**VI-17**  
+**Description:** Verify the reset behavior of the `point_scalar_mult` module.  
+**Related Signals:** `reset`, `x3`, `y3`, `done`.  
+**Condition:** Assert the `reset` signal and monitor the `x3`, `y3`, and `done` signals.  
+**Expected Result:** The `x3` and `y3` signals should be reset to 0, and the `done` signal should be deasserted during the reset period.
+
+---
+
+These verification items cover the key functional requirements and signal interactions for the submodules described in the specification. Let me know if you need further details or additional verification items!

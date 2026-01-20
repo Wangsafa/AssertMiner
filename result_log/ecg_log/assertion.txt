@@ -1,0 +1,44 @@
+
+
+assert property (@(posedge point_add.clk) disable iff (point_add.reset)
+    point_add.done |-> (point_add.x3 == expected_x3 && point_add.y3 == expected_y3));
+
+
+assert property (@(posedge point_add.clk) disable iff (point_add.reset)
+    point_add.zero1 |-> (point_add.x3 == point_add.x2 && point_add.y3 == point_add.y2 && point_add.zero3 == point_add.zero2));
+
+
+assert property (@(posedge point_add.clk) disable iff (point_add.reset)
+    point_add.zero2 |-> (point_add.x3 == point_add.x1 && point_add.y3 == point_add.y1 && point_add.zero3 == point_add.zero1));
+
+
+assert property (@(posedge point_add.clk) disable iff (point_add.reset)
+    (point_add.x1 == point_add.x2 && point_add.y1 == -point_add.y2) |-> point_add.zero3);
+
+
+assert property (@(posedge point_add.clk) disable iff (point_add.reset)
+    (point_add.x1 == point_add.x2 && point_add.y1 == point_add.y2) |-> (point_add.x3 == expected_x3 && point_add.y3 == expected_y3));
+
+
+assert property (@(posedge point_add.clk) disable iff (point_add.reset)
+    point_add.done |-> (point_add.x3 !== 'bx && point_add.y3 !== 'bx));
+
+
+assert property (@(posedge func6.clk) disable iff (func6.reset)
+    (func6.in && !func6.reg1) |-> func6.out);
+
+
+assert property (@(posedge func6.clk) disable iff (!func6.reset)
+    func6.reset |-> (func6.out == 0));
+
+
+assert property (@(posedge f3m_mult.clk) disable iff (f3m_mult.reset)
+    f3m_mult.done |-> (f3m_mult.C == f3m_mult.A * f3m_mult.B));
+
+
+assert property (@(posedge f3m_mult.clk) disable iff (f3m_mult.reset)
+    f3m_mult.done |-> (f3m_mult.C !== 'bx));
+
+
+assert property (@(posedge f3m_mult.clk) disable iff (!f3m_mult.reset)
+    f3m_mult.reset |-> (f3m_mult.C == 0 && f3m_mult.done == 0));
